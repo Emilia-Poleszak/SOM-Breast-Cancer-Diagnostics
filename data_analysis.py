@@ -37,10 +37,10 @@ std2 = X2.std()
 print('Class 1:\nmean values:\n', mean1, '\nstandard deviation:\n', std1,
       '\nClass 2:\nmean values:\n', mean2, '\nstandard deviation:\n', std2)
 
-X1.hist(bins=10, figsize=(10, 6), edgecolor='black')
+X1.hist(bins=40, figsize=(10, 6), edgecolor='black')
 plt.tight_layout()
 plt.show()
 
-X2.hist(bins=10, figsize=(10, 6), edgecolor='black')
+X2.hist(bins=40, figsize=(10, 6), edgecolor='black')
 plt.tight_layout()
 plt.show()
