@@ -21,13 +21,27 @@ print('Class 1:\nmean values:\n', mean1, '\nstandard deviation:\n', std1,
       '\nClass 2:\nmean values:\n', mean2, '\nstandard deviation:\n', std2)
 
 # creating histograms
-X1.hist(bins=40, figsize=(10, 6), edgecolor='black')
-plt.tight_layout()
-plt.show()
+def histogram(feature, x1, x2):
+      plt.subplot(1,2,1)
+      x1[feature].hist(bins=40, figsize=(10, 6), edgecolor='black')
+      plt.title(feature + ", class 1")
 
-X2.hist(bins=40, figsize=(10, 6), edgecolor='black')
-plt.tight_layout()
-plt.show()
+      plt.subplot(1,2,2)
+      x2[feature].hist(bins=40, figsize=(10, 6), edgecolor='black')
+      plt.title(feature + ", class 2")
+
+      plt.tight_layout()
+      plt.show()
+
+histogram(X1.columns[0], X1, X2)
+histogram(X1.columns[1], X1, X2)
+histogram(X1.columns[2], X1, X2)
+histogram(X1.columns[3], X1, X2)
+histogram(X1.columns[4], X1, X2)
+histogram(X1.columns[5], X1, X2)
+histogram(X1.columns[6], X1, X2)
+histogram(X1.columns[7], X1, X2)
+histogram(X1.columns[8], X1, X2)
 
 # splitting data of both classes: 80% for training and 20% for tests
 rows_1_learn = int(0.8*n)
