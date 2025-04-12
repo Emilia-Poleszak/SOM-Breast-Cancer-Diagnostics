@@ -22,14 +22,15 @@ print('Class 1:\nmean values:\n', mean1, '\nstandard deviation:\n', std1,
 
 # creating histograms
 def histogram(feature, x1, x2):
-      plt.figure(figsize=(10,5))
-      plt.subplot(1,2,1)
-      x1[feature].hist(bins=40, edgecolor='black')
-      plt.title(feature + ", class 1")
+      fig, axs = plt.subplots(1,2, sharex=True, sharey=True, figsize=(10,4))
 
-      plt.subplot(1,2,2)
-      x2[feature].hist(bins=40, edgecolor='black')
-      plt.title(feature + ", class 2")
+      axs[0].hist(x1[feature], bins=40, edgecolor='black')
+      axs[0].set_title(feature + ", class 1")
+      axs[0].grid(True)
+
+      axs[1].hist(x2[feature], bins=40, edgecolor='black')
+      axs[1].set_title(feature + ", class 2")
+      axs[1].grid(True)
 
       plt.tight_layout()
       plt.show()
