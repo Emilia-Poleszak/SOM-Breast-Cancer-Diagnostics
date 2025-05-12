@@ -9,21 +9,26 @@ def load_data():
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
 
-    # splitting data by classes and statistical analysis
+    # splitting data by classes
     n = np.count_nonzero(y==1)
-    X1 = X.iloc[:n].to_numpy()
-    X2 = X.iloc[n:].to_numpy()
-    y1 = y.iloc[:n].to_numpy()
-    y2 = y.iloc[n:].to_numpy()
-    return X.to_numpy(), y.to_numpy()-1
+    X1 = X.iloc[:n]
+    X2 = X.iloc[n:]
+    y1 = y.iloc[:n]
+    y2 = y.iloc[n:]
+
+    # splitting X and y: 80% for training and 20% for tests
+    rows_1 = int(0.8 * n)
+    rows_2 = int(0.8 * (len(X) - n))
+
+    X_learn_data = pd.concat([X1.iloc[:rows_1], X2.iloc[:rows_2]], axis=0)
+    X_test_data = pd.concat([X1.iloc[rows_1:], X2.iloc[rows_2:]], axis=0)
+    y_learn_data = pd.concat([y1.iloc[:rows_1], y2.iloc[:rows_2]], axis=0)
+    y_test_data = pd.concat([y1.iloc[rows_1:], y2.iloc[rows_2:]], axis=0)
+
+    return X_learn_data.to_numpy(), X_test_data.to_numpy(), y_learn_data.to_numpy(), y_test_data.to_numpy()
 
 if __name__ == '__main__':
-    X, y = load_data()
-
-    X_learn = X[int(0.8*len(X)):]
-    X_test = X[:int(0.8*len(X))]
-    y_learn = y[int(0.8*len(X)):]
-    y_test = y[:int(0.8*len(X))]
+    X_learn, X_test, y_learn, y_test = load_data()
 
     som_clf = som.SOMClassifier()
     som_clf.learn(X_learn, y_learn)
