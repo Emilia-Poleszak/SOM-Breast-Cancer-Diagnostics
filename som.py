@@ -1,12 +1,13 @@
 import random
 import numpy as np
-from scipy.linalg import find_best_blas_type
+from collections import defaultdict, Counter
 
 
 class SOMClassifier:
     def __init__(self, map_shape: tuple[int, int] = (10, 10)):
         self.map_shape = map_shape
         self.w_map = np.array([])
+        self.neuron_labels = np.zeros((10, 10))
 
     def learn(self, training_x: np.array, training_y: np.array,
               learning_rate: float = 0.01, iterations: int = 1000):
@@ -29,16 +30,24 @@ class SOMClassifier:
             h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, 2)
             for i in range(self.map_shape[0]):
                 for j in range(self.map_shape[1]):
-                    w_map[i][j] = w_map[i][j] + learning_rate*h[i][j]*(xk - w_map[i][j])
+                    w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
             iterations -= 1
         self.w_map = w_map
         print(self.w_map)
+
+        labels = defaultdict(list)
+        for i in range(training_x.shape[0]):
+            best_neuron_idx = self.find_best_neuron(w_map, training_x[i])
+            labels[best_neuron_idx].append(training_y[i])
+
+        for i, labels in labels.items():
+            self.neuron_labels[i] = Counter(labels).most_common(1)[0][0]
 
     def predict(self, samples: np.array):
         y = []
         for sample in samples:
             best_neuron_idx = self.find_best_neuron(self.w_map, sample)
-            y.append(np.sign(self.w_map[best_neuron_idx]))
+            y.append(self.neuron_labels[best_neuron_idx])
         return np.array(y)
 
     def find_best_neuron(self, w_map: np.ndarray, xk):
