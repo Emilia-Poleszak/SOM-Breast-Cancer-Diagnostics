@@ -4,6 +4,10 @@ import pandas as pd
 import som
 
 def load_data():
+    """
+    Loads data and splits it for X and y, by classes and for training and test.
+    :return: Numpy arrays: X for training, y for training, X for tests, y for tests
+    """
     data = pd.read_csv(r'Breast Cancer Coimbra_MLR\dataR2.csv')
 
     X = data.iloc[:, :-1]
