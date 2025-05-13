@@ -32,6 +32,7 @@ class SOMClassifier:
                 for j in range(self.map_shape[1]):
                     w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
             iterations -= 1
+            learning_rate -= 0.000001
         self.w_map = w_map
         print(self.w_map)
 
@@ -47,7 +48,7 @@ class SOMClassifier:
         y = []
         for sample in samples:
             best_neuron_idx = self.find_best_neuron(self.w_map, sample)
-            y.append(self.neuron_labels[best_neuron_idx])
+            y.append(int(self.neuron_labels[best_neuron_idx]))
         return np.array(y)
 
     def find_best_neuron(self, w_map: np.ndarray, xk):

@@ -33,6 +33,7 @@ if __name__ == '__main__':
     som_clf = som.SOMClassifier()
     som_clf.learn(X_learn, y_learn)
     y_pred = som_clf.predict(X_test)
+    print(np.transpose(y_test))
     print(y_pred)
     # accuracy = 0
     # for i in range(len(y_pred)):
