@@ -10,7 +10,7 @@ class SOMClassifier:
         self.neuron_labels = np.zeros((10, 10))
 
     def learn(self, training_x: np.array, training_y: np.array,
-              learning_rate: float = 0.01, iterations: int = 1000):
+              learning_rate: float = 0.3, iterations: int = 1000):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
@@ -19,13 +19,7 @@ class SOMClassifier:
         :param iterations: Number of iterations
         """
         # initializing map
-        w_map = []
-        for i in range(self.map_shape[0]):
-            w_row = []
-            for j in range(self.map_shape[1]):
-                w_row.append(np.zeros(training_x.shape[1]))
-            w_map.append(np.array(w_row))
-        w_map = np.array(w_map)
+        w_map = self.initialize_map(training_x)
         best_neuron_idx = (0, 0)
 
         # training: finding best matching unit and updating surrounding neurons
@@ -33,7 +27,7 @@ class SOMClassifier:
                 and iterations > 0:
             xk = random.choice(training_x)
             best_neuron_idx = self.find_best_neuron(w_map, xk)
-            print(best_neuron_idx)
+            #print(best_neuron_idx)
 
             h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, 2)
             for i in range(self.map_shape[0]):
@@ -42,16 +36,10 @@ class SOMClassifier:
             iterations -= 1
             learning_rate -= 0.000001
         self.w_map = w_map
-        print(self.w_map)
+       # print(self.w_map)
 
         # creating label matrix
-        labels = defaultdict(list)
-        for i in range(training_x.shape[0]):
-            best_neuron_idx = self.find_best_neuron(w_map, training_x[i])
-            labels[best_neuron_idx].append(training_y[i])
-
-        for i, labels in labels.items():
-            self.neuron_labels[i] = Counter(labels).most_common(1)[0][0]
+        self.create_labels(training_x, training_y, w_map)
 
     def predict(self, samples: np.array):
         """
@@ -110,3 +98,36 @@ class SOMClassifier:
         h_indices = np.indices(grid_shape).transpose(1, 2, 0)
         e_distances = np.sqrt(np.sum((h_indices - winner_coords)**2, axis=-1))
         return np.exp(-e_distances / (2*(stand_deviation**2)) )
+
+    def initialize_map(self, training_x: np.array) -> np.array:
+        """
+        Initialises a 3D map with dimensions based on map_shape and
+        shape of training data.
+        :param training_x: Normalised training data
+        :return: 3D map filled with zeros.
+        """
+        w_map = []
+        for i in range(self.map_shape[0]):
+            w_row = []
+            for j in range(self.map_shape[1]):
+                w_row.append(np.zeros(training_x.shape[1]))
+            w_map.append(np.array(w_row))
+        return np.array(w_map)
+
+    def create_labels(self, training_x: np.array,
+                      training_y: np.array, w_map: np.array):
+        """
+        Creates labels of trained map based on training data and it's labels.
+        Params training_x and training_y must have same size for axis=1.
+        :param training_x: Normalised training data
+        :param training_y: Labels of training data
+        :param w_map: Trained neuron map
+        """
+        labels = defaultdict(list)
+        for i in range(training_x.shape[0]):
+            best_neuron_idx = self.find_best_neuron(w_map, training_x[i])
+            labels[best_neuron_idx].append(training_y[i])
+
+        # finding most common label
+        for i, labels in labels.items():
+            self.neuron_labels[i] = Counter(labels).most_common(1)[0][0]
