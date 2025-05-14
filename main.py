@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 import som
 
@@ -29,7 +30,12 @@ def load_data():
     y_learn_data = pd.concat([y1.iloc[:rows_1], y2.iloc[:rows_2]], axis=0)
     y_test_data = pd.concat([y1.iloc[rows_1:], y2.iloc[rows_2:]], axis=0)
 
-    return X_learn_data.to_numpy(), X_test_data.to_numpy(), y_learn_data.to_numpy(), y_test_data.to_numpy()
+    # normalising data to [0,1]
+    scaler = MinMaxScaler()
+    X_learn_data = scaler.fit_transform(X_learn_data)
+    X_test_data = scaler.transform(X_test_data)
+
+    return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
 
 if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
@@ -39,8 +45,9 @@ if __name__ == '__main__':
     y_pred = som_clf.predict(X_test)
     print(np.transpose(y_test))
     print(y_pred)
-    # accuracy = 0
-    # for i in range(len(y_pred)):
-    #     if y_pred[i] == y_test[i]:
-    #         accuracy += 1
-    # accuracy = accuracy / len(y_pred)
+    accuracy = 0
+    for i in range(len(y_pred)):
+        if y_pred[i] == y_test[i]:
+            accuracy += 1
+    accuracy = accuracy / len(y_pred) * 100
+    print("Accuracy: {:.2f}%".format(accuracy))
