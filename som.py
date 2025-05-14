@@ -10,12 +10,13 @@ class SOMClassifier:
         self.neuron_labels = np.zeros((10, 10))
 
     def learn(self, training_x: np.array, training_y: np.array,
-              learning_rate: float = 0.3, iterations: int = 1000):
+              learning_rate: float = 0.3, standard_deviation: float = 3, iterations: int = 1000):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
         :param training_y: Data labels
         :param learning_rate: Number of learning rate
+        :param standard_deviation: Standard deviation, used in h_function
         :param iterations: Number of iterations
         """
         # initializing map
@@ -29,12 +30,13 @@ class SOMClassifier:
             best_neuron_idx = self.find_best_neuron(w_map, xk)
             #print(best_neuron_idx)
 
-            h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, 2)
+            h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
             for i in range(self.map_shape[0]):
                 for j in range(self.map_shape[1]):
                     w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
             iterations -= 1
             learning_rate -= 0.000001
+            standard_deviation -= 0.002
         self.w_map = w_map
        # print(self.w_map)
 
