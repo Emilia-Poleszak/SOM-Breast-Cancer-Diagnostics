@@ -61,16 +61,18 @@ def sensitivity_specificity(test: np.array, pred: np.array, label: int):
     print(" Specificity: {:.2f}%\n".format(specificity))
 
 
-def accuracy():
+def accuracy(pred: np.array, test: np.array):
     """
     Calculates accuracy of labels predictions: number of predicted labels
     consistent with true labels. Prints results in percentage format.
+    :param test: True data labels
+    :param pred: Predicted data labels
     """
     a = 0
-    for i in range(len(y_pred)):
-        if y_pred[i] == y_test[i]:
+    for i in range(len(pred)):
+        if pred[i] == test[i]:
             a += 1
-    a = a / len(y_pred) * 100
+    a = a / len(pred) * 100
     print("Accuracy: {:.2f}%\n".format(a))
 
 
@@ -83,6 +85,6 @@ if __name__ == '__main__':
     print(np.transpose(y_test))
     print(y_pred)
 
-    accuracy()
+    accuracy(y_pred, y_test)
     sensitivity_specificity(y_test, y_pred, 1)
     sensitivity_specificity(y_test, y_pred, 2)
