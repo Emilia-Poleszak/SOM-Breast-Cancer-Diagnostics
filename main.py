@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import MinMaxScaler
 
 import som
@@ -37,6 +38,28 @@ def load_data():
 
     return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
 
+def sensitivity_specificity(test: np.array, pred: np.array, label):
+    test_bin = (np.array(test) == label).astype(int)
+    pred_bin = (np.array(pred) == label).astype(int)
+
+    t_negative, f_positive, f_negative, t_positive = confusion_matrix(test_bin, pred_bin).ravel()
+
+    sensitivity = t_positive / (t_positive + f_negative) * 100
+    specificity = t_negative / (t_negative + f_positive) * 100
+
+    print("Class {}:".format(label))
+    print(" Sensitivity: {:.2f}%".format(sensitivity))
+    print(" Specificity: {:.2f}%\n".format(specificity))
+
+
+def accuracy():
+    a = 0
+    for i in range(len(y_pred)):
+        if y_pred[i] == y_test[i]:
+            a += 1
+    a = a / len(y_pred) * 100
+    print("Accuracy: {:.2f}%\n".format(a))
+
 if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
 
@@ -45,9 +68,7 @@ if __name__ == '__main__':
     y_pred = som_clf.predict(X_test)
     print(np.transpose(y_test))
     print(y_pred)
-    accuracy = 0
-    for i in range(len(y_pred)):
-        if y_pred[i] == y_test[i]:
-            accuracy += 1
-    accuracy = accuracy / len(y_pred) * 100
-    print("Accuracy: {:.2f}%".format(accuracy))
+
+    accuracy()
+    sensitivity_specificity(y_test, y_pred, 1)
+    sensitivity_specificity(y_test, y_pred, 2)
