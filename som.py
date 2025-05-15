@@ -10,7 +10,7 @@ class SOMClassifier:
         self.neuron_labels = np.zeros((10, 10))
 
     def learn(self, training_x: np.array, training_y: np.array,
-              learning_rate: float = 0.3, standard_deviation: float = 3, iterations: int = 1000):
+              learning_rate: float = 0.5, standard_deviation: float = 3, iterations: int = 1000):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
@@ -20,15 +20,15 @@ class SOMClassifier:
         :param iterations: Number of iterations
         """
         # initializing map
-        w_map = self.initialize_map(training_x)
+        w_map = np.random.rand(self.map_shape[0], self.map_shape[1], training_x.shape[1])
         best_neuron_idx = (0, 0)
 
         # training: finding best matching unit and updating surrounding neurons
-        while np.any(np.sign(w_map[best_neuron_idx].dot(training_x.transpose())) != training_y)\
+        while np.any(np.sign(w_map[best_neuron_idx].dot(training_x.transpose())) != training_y) \
                 and iterations > 0:
             xk = random.choice(training_x)
             best_neuron_idx = self.find_best_neuron(w_map, xk)
-            #print(best_neuron_idx)
+            # print(best_neuron_idx)
 
             h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
             for i in range(self.map_shape[0]):
@@ -38,7 +38,7 @@ class SOMClassifier:
             learning_rate -= 0.000001
             standard_deviation -= 0.002
         self.w_map = w_map
-       # print(self.w_map)
+        # print(self.w_map)
 
         # creating label matrix
         self.create_labels(training_x, training_y, w_map)
@@ -98,23 +98,8 @@ class SOMClassifier:
         :return:
         """
         h_indices = np.indices(grid_shape).transpose(1, 2, 0)
-        e_distances = np.sqrt(np.sum((h_indices - winner_coords)**2, axis=-1))
-        return np.exp(-e_distances / (2*(stand_deviation**2)) )
-
-    def initialize_map(self, training_x: np.array) -> np.array:
-        """
-        Initialises a 3D map with dimensions based on map_shape and
-        shape of training data.
-        :param training_x: Normalised training data
-        :return: 3D map filled with zeros.
-        """
-        w_map = []
-        for i in range(self.map_shape[0]):
-            w_row = []
-            for j in range(self.map_shape[1]):
-                w_row.append(np.zeros(training_x.shape[1]))
-            w_map.append(np.array(w_row))
-        return np.array(w_map)
+        e_distances = np.sqrt(np.sum((h_indices - winner_coords) ** 2, axis=-1))
+        return np.exp(-e_distances / (2 * (stand_deviation ** 2)))
 
     def create_labels(self, training_x: np.array,
                       training_y: np.array, w_map: np.array):
