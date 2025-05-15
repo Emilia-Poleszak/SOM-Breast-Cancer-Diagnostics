@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 import som
 
+
 def load_data():
     """
     Loads data and splits it for X and y, by classes and for training and test.
@@ -16,7 +17,7 @@ def load_data():
     y = data.iloc[:, -1]
 
     # splitting data by classes
-    n = np.count_nonzero(y==1)
+    n = np.count_nonzero(y == 1)
     X1 = X.iloc[:n]
     X2 = X.iloc[n:]
     y1 = y.iloc[:n]
@@ -38,7 +39,15 @@ def load_data():
 
     return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
 
-def sensitivity_specificity(test: np.array, pred: np.array, label):
+
+def sensitivity_specificity(test: np.array, pred: np.array, label: int):
+    """
+    Calculates sensitivity and specificity of given predicted labels based on true labels.
+    Prints results in percentage format.
+    :param test: True data labels
+    :param pred: Predicted data labels
+    :param label: Tested label (1 or 2)
+    """
     test_bin = (np.array(test) == label).astype(int)
     pred_bin = (np.array(pred) == label).astype(int)
 
@@ -53,12 +62,17 @@ def sensitivity_specificity(test: np.array, pred: np.array, label):
 
 
 def accuracy():
+    """
+    Calculates accuracy of labels predictions: number of predicted labels
+    consistent with true labels. Prints results in percentage format.
+    """
     a = 0
     for i in range(len(y_pred)):
         if y_pred[i] == y_test[i]:
             a += 1
     a = a / len(y_pred) * 100
     print("Accuracy: {:.2f}%\n".format(a))
+
 
 if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
