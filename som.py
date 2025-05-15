@@ -7,25 +7,25 @@ class SOMClassifier:
     def __init__(self, map_shape: tuple[int, int] = (10, 10)):
         self.map_shape = map_shape
         self.w_map = np.array([])
-        self.neuron_labels = np.zeros((10, 10))
+        self.neuron_labels = np.zeros(map_shape)
 
     def learn(self, training_x: np.array, training_y: np.array,
-              learning_rate: float = 0.5, standard_deviation: float = 3, iterations: int = 1000):
+              learning_rate: float = 0.01, standard_deviation: float = 3, epochs: int = 1000):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
         :param training_y: Data labels
         :param learning_rate: Number of learning rate
         :param standard_deviation: Standard deviation, used in h_function
-        :param iterations: Number of iterations
+        :param epochs: Number of iterations
         """
+        lr0 = learning_rate
         # initializing map
         w_map = np.random.rand(self.map_shape[0], self.map_shape[1], training_x.shape[1])
-        best_neuron_idx = (0, 0)
+        best_neuron_idx = self.find_best_neuron(w_map, training_x[0])
 
         # training: finding best matching unit and updating surrounding neurons
-        while np.any(np.sign(w_map[best_neuron_idx].dot(training_x.transpose())) != training_y) \
-                and iterations > 0:
+        for epoch in range(epochs):
             xk = random.choice(training_x)
             best_neuron_idx = self.find_best_neuron(w_map, xk)
             # print(best_neuron_idx)
@@ -34,8 +34,7 @@ class SOMClassifier:
             for i in range(self.map_shape[0]):
                 for j in range(self.map_shape[1]):
                     w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
-            iterations -= 1
-            learning_rate -= 0.000001
+            learning_rate = lr0 * np.exp(-epoch / epochs)
             standard_deviation -= 0.002
         self.w_map = w_map
         # print(self.w_map)

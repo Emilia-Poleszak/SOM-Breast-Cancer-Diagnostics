@@ -35,7 +35,7 @@ def load_data():
     # normalising data to [0,1]
     scaler = MinMaxScaler()
     X_learn_data = scaler.fit_transform(X_learn_data)
-    X_test_data = scaler.transform(X_test_data)
+    X_test_data = scaler.fit_transform(X_test_data)
 
     return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
 
     som_clf = som.SOMClassifier()
-    som_clf.learn(X_learn, y_learn)
+    som_clf.learn(X_learn, y_learn, epochs=3000)
     y_pred = som_clf.predict(X_test)
     print(np.transpose(y_test))
     print(y_pred)
