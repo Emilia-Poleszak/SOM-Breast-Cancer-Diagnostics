@@ -40,25 +40,23 @@ def load_data():
     return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
 
 
-def sensitivity_specificity(test: np.array, pred: np.array, label: int):
+def sensitivity_specificity(test: np.array, pred: np.array):
     """
     Calculates sensitivity and specificity of given predicted labels based on true labels.
     Prints results in percentage format.
     :param test: True data labels
     :param pred: Predicted data labels
-    :param label: Tested label (1 or 2)
     """
-    test_bin = (np.array(test) == label).astype(int)
-    pred_bin = (np.array(pred) == label).astype(int)
+    test_bin = (np.array(test) == 1).astype(int)
+    pred_bin = (np.array(pred) == 1).astype(int)
 
     t_negative, f_positive, f_negative, t_positive = confusion_matrix(test_bin, pred_bin).ravel()
 
     sensitivity = t_positive / (t_positive + f_negative) * 100
     specificity = t_negative / (t_negative + f_positive) * 100
 
-    print("Class {}:".format(label))
-    print(" Sensitivity: {:.2f}%".format(sensitivity))
-    print(" Specificity: {:.2f}%\n".format(specificity))
+    print("Sensitivity: {:.2f}%".format(sensitivity))
+    print("Specificity: {:.2f}%\n".format(specificity))
 
 
 def accuracy(pred: np.array, test: np.array):
@@ -86,5 +84,4 @@ if __name__ == '__main__':
     print(y_pred)
 
     accuracy(y_pred, y_test)
-    sensitivity_specificity(y_test, y_pred, 1)
-    sensitivity_specificity(y_test, y_pred, 2)
+    sensitivity_specificity(y_test, y_pred)
