@@ -35,7 +35,7 @@ def load_data():
     # normalising data to [0,1]
     scaler = MinMaxScaler()
     X_learn_data = scaler.fit_transform(X_learn_data)
-    X_test_data = scaler.fit_transform(X_test_data)
+    X_test_data = scaler.transform(X_test_data)
     y_test_data -=1
     y_learn_data -=1
 
