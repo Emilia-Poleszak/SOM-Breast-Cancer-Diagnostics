@@ -1,43 +1,43 @@
-import random
 import numpy as np
 from collections import defaultdict, Counter
 
 
 class SOMClassifier:
-    def __init__(self, map_shape: tuple[int, int] = (10, 10)):
+    def __init__(self, map_shape: tuple[int, int] = (6, 6)):
         self.map_shape = map_shape
         self.w_map = np.array([])
         self.neuron_labels = np.zeros(map_shape)
 
-    def learn(self, training_x: np.array, training_y: np.array,
-              learning_rate: float = 0.01, standard_deviation: float = 3, epochs: int = 1000):
+    def learn(self, training_x: np.array, training_y: np.array, epochs: int,
+              learning_rate: float = 0.3, standard_deviation: float = 3):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
         :param training_y: Data labels
         :param learning_rate: Number of learning rate
         :param standard_deviation: Standard deviation, used in h_function
-        :param epochs: Number of iterations
+        :param epochs: Number of epochs
         """
         lr0 = learning_rate
+        s = standard_deviation
+
         # initializing map
         w_map = np.random.rand(self.map_shape[0], self.map_shape[1], training_x.shape[1])
-        best_neuron_idx = self.find_best_neuron(w_map, training_x[0])
 
         # training: finding best matching unit and updating surrounding neurons
         for epoch in range(epochs):
-            xk = random.choice(training_x)
-            best_neuron_idx = self.find_best_neuron(w_map, xk)
-            # print(best_neuron_idx)
+            np.random.shuffle(training_x)
+            for xk in training_x:
+                best_neuron_idx = self.find_best_neuron(w_map, xk)
 
-            h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
-            for i in range(self.map_shape[0]):
-                for j in range(self.map_shape[1]):
-                    w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
-            learning_rate = lr0 * np.exp(-epoch / epochs)
-            standard_deviation -= 0.002
+                # updating map
+                h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
+                for i in range(self.map_shape[0]):
+                    for j in range(self.map_shape[1]):
+                        w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
+                learning_rate = lr0 * np.exp(-epoch / epochs)
+                standard_deviation = s * np.exp(-epoch / epochs)
         self.w_map = w_map
-        # print(self.w_map)
 
         # creating label matrix
         self.create_labels(training_x, training_y, w_map)
@@ -117,3 +117,4 @@ class SOMClassifier:
         # finding most common label
         for i, labels in labels.items():
             self.neuron_labels[i] = Counter(labels).most_common(1)[0][0]
+        print("Neuron map labels:\n{}\n".format(self.neuron_labels))

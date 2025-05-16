@@ -56,7 +56,7 @@ def sensitivity_specificity(test: np.array, pred: np.array):
     specificity = t_negative / (t_negative + f_positive) * 100
 
     print("Sensitivity: {:.2f}%".format(sensitivity))
-    print("Specificity: {:.2f}%\n".format(specificity))
+    print("Specificity: {:.2f}%".format(specificity))
 
 
 def accuracy(pred: np.array, test: np.array):
@@ -71,17 +71,17 @@ def accuracy(pred: np.array, test: np.array):
         if pred[i] == test[i]:
             a += 1
     a = a / len(pred) * 100
-    print("Accuracy: {:.2f}%\n".format(a))
+    print("Accuracy: {:.2f}%".format(a))
 
 
 if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
 
     som_clf = som.SOMClassifier()
-    som_clf.learn(X_learn, y_learn, epochs=3000)
+    som_clf.learn(X_learn, y_learn, epochs=1000)
     y_pred = som_clf.predict(X_test)
-    print(np.transpose(y_test))
-    print(y_pred)
+    print("True labels: \n{}".format(np.transpose(y_test)))
+    print("Predicted labels: \n{}".format(y_pred))
 
     accuracy(y_pred, y_test)
     sensitivity_specificity(y_test, y_pred)
