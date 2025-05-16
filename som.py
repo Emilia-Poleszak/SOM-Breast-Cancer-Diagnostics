@@ -9,7 +9,7 @@ class SOMClassifier:
         self.neuron_labels = np.zeros(map_shape)
 
     def learn(self, training_x: np.array, training_y: np.array, epochs: int,
-              learning_rate: float = 0.3, standard_deviation: float = 3):
+              learning_rate: float = 0.5, standard_deviation: float = 3):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
@@ -26,17 +26,16 @@ class SOMClassifier:
 
         # training: finding best matching unit and updating surrounding neurons
         for epoch in range(epochs):
-            np.random.shuffle(training_x)
-            for xk in training_x:
-                best_neuron_idx = self.find_best_neuron(w_map, xk)
+            xk = training_x[np.random.randint(0, len(training_x))]
+            best_neuron_idx = self.find_best_neuron(w_map, xk)
 
-                # updating map
-                h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
-                for i in range(self.map_shape[0]):
-                    for j in range(self.map_shape[1]):
-                        w_map[i][j] = w_map[i][j] + learning_rate * h[i][j] * (xk - w_map[i][j])
-                learning_rate = lr0 * np.exp(-epoch / epochs)
-                standard_deviation = s * np.exp(-epoch / epochs)
+            # updating map
+            h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
+            for i in range(self.map_shape[0]):
+                for j in range(self.map_shape[1]):
+                    w_map[i][j] += learning_rate * h[i][j] * (xk - w_map[i][j])
+            learning_rate = lr0 * np.exp(-epoch / epochs)
+            standard_deviation = s * np.exp(-epoch / epochs)
         self.w_map = w_map
 
         # creating label matrix
@@ -109,12 +108,22 @@ class SOMClassifier:
         :param training_y: Labels of training data
         :param w_map: Trained neuron map
         """
-        labels = defaultdict(list)
-        for i in range(training_x.shape[0]):
-            best_neuron_idx = self.find_best_neuron(w_map, training_x[i])
-            labels[best_neuron_idx].append(training_y[i])
+        for i in range(self.map_shape[0]):
+            for j in range(self.map_shape[1]):
+                distances = [ self.e_distance(w_map[i][j], x) for x in training_x ]
+                nearest = np.argmin(distances)
+                self.neuron_labels[i, j] = training_y[nearest]
 
-        # finding most common label
-        for i, labels in labels.items():
-            self.neuron_labels[i] = Counter(labels).most_common(1)[0][0]
+        # labels = defaultdict(list)
+        # for i in range(training_x.shape[0]):
+        #     best_neuron_idx = self.find_best_neuron(w_map, training_x[i])
+        #     labels[best_neuron_idx].append(training_y[i])
+        #
+        # # finding most common label
+        # for i, labels in labels.items():
+        #     filterred = [ label for label in labels if label != 0 ]
+        #     if filterred:
+        #         self.neuron_labels[i] = Counter(filterred).most_common(1)[0][0]
+        #     else:
+        #         self.neuron_labels[i] = 0
         print("Neuron map labels:\n{}\n".format(self.neuron_labels))

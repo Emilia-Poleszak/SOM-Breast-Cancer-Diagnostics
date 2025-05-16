@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.utils import shuffle
 
 import som
 
@@ -27,15 +28,18 @@ def load_data():
     rows_1 = int(0.8 * n)
     rows_2 = int(0.8 * (len(X) - n))
 
-    X_learn_data = pd.concat([X1.iloc[:rows_1], X2.iloc[:rows_2]], axis=0)
-    X_test_data = pd.concat([X1.iloc[rows_1:], X2.iloc[rows_2:]], axis=0)
+    X_learn_data = pd.concat([X1.iloc[:rows_1], X2.iloc[:rows_2]], axis=0).to_numpy()
+    X_test_data = pd.concat([X1.iloc[rows_1:], X2.iloc[rows_2:]], axis=0).to_numpy()
     y_learn_data = pd.concat([y1.iloc[:rows_1], y2.iloc[:rows_2]], axis=0)
     y_test_data = pd.concat([y1.iloc[rows_1:], y2.iloc[rows_2:]], axis=0)
 
     # normalising data to [0,1]
     scaler = MinMaxScaler()
     X_learn_data = scaler.fit_transform(X_learn_data)
-    X_test_data = scaler.fit_transform(X_test_data)
+    X_test_data = scaler.transform(X_test_data)
+
+    # X_learn_data, y_learn_data = shuffle(X_learn_data, y_learn_data, random_state=42)
+    # X_test_data, y_test_data = shuffle(X_test_data, y_test_data, random_state=42)
 
     return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
 
@@ -78,7 +82,7 @@ if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
 
     som_clf = som.SOMClassifier()
-    som_clf.learn(X_learn, y_learn, epochs=1000)
+    som_clf.learn(X_learn, y_learn, epochs=2000)
     y_pred = som_clf.predict(X_test)
     print("True labels: \n{}".format(np.transpose(y_test)))
     print("Predicted labels: \n{}".format(y_pred))
