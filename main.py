@@ -51,8 +51,8 @@ def sensitivity_specificity(test: np.array, pred: np.array):
     :param test: True data labels
     :param pred: Predicted data labels
     """
-    test_bin = (np.array(test) == 1).astype(int)
-    pred_bin = (np.array(pred) == 1).astype(int)
+    test_bin = (np.array(test) == 2).astype(int)
+    pred_bin = (np.array(pred) == 2).astype(int)
 
     t_negative, f_positive, f_negative, t_positive = confusion_matrix(test_bin, pred_bin).ravel()
 
