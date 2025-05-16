@@ -1,5 +1,4 @@
 import numpy as np
-from collections import defaultdict, Counter
 
 
 class SOMClassifier:
@@ -36,6 +35,7 @@ class SOMClassifier:
                     w_map[i][j] += learning_rate * h[i][j] * (xk - w_map[i][j])
             learning_rate = lr0 * np.exp(-epoch / epochs)
             standard_deviation = s * np.exp(-epoch / epochs)
+            if epoch%100 == 0: self.create_labels(training_x, training_y, w_map)
         self.w_map = w_map
 
         # creating label matrix
@@ -113,17 +113,4 @@ class SOMClassifier:
                 distances = [ self.e_distance(w_map[i][j], x) for x in training_x ]
                 nearest = np.argmin(distances)
                 self.neuron_labels[i, j] = training_y[nearest]
-
-        # labels = defaultdict(list)
-        # for i in range(training_x.shape[0]):
-        #     best_neuron_idx = self.find_best_neuron(w_map, training_x[i])
-        #     labels[best_neuron_idx].append(training_y[i])
-        #
-        # # finding most common label
-        # for i, labels in labels.items():
-        #     filterred = [ label for label in labels if label != 0 ]
-        #     if filterred:
-        #         self.neuron_labels[i] = Counter(filterred).most_common(1)[0][0]
-        #     else:
-        #         self.neuron_labels[i] = 0
         print("Neuron map labels:\n{}\n".format(self.neuron_labels))
