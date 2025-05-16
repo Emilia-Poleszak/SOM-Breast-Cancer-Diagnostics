@@ -33,8 +33,8 @@ class SOMClassifier:
             for i in range(self.map_shape[0]):
                 for j in range(self.map_shape[1]):
                     w_map[i][j] += learning_rate * h[i][j] * (xk - w_map[i][j])
-            learning_rate = lr0 * np.exp(-epoch / epochs)
-            standard_deviation = s * np.exp(-epoch / epochs)
+            learning_rate = lr0 * (1 - epoch / epochs)
+            standard_deviation = s * (1 - epoch / epochs)
             if epoch%100 == 0: self.create_labels(training_x, training_y, w_map)
         self.w_map = w_map
 
