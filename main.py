@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import MinMaxScaler
 
 import som
 
+EPOCHS = 2000
 
 def load_data():
     """
@@ -81,10 +83,13 @@ if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
 
     som_clf = som.SOMClassifier()
-    som_clf.learn(X_learn, y_learn, epochs=1000)
+    errors = som_clf.learn(X_learn, y_learn, epochs=EPOCHS)
     y_pred = som_clf.predict(X_test)
     print("True labels: \n{}".format(np.transpose(y_test)))
     print("Predicted labels: \n{}".format(y_pred))
 
     accuracy(y_pred, y_test)
     sensitivity_specificity(y_test, y_pred)
+
+    plt.plot([10*i for i in range(len(errors))], errors)
+    plt.show()

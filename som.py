@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import accuracy_score
 
 
 class SOMClassifier:
@@ -19,6 +20,7 @@ class SOMClassifier:
         """
         lr0 = learning_rate
         s = standard_deviation
+        quantisation_error = np.empty(int(epochs/10))
 
         # initializing map
         w_map = np.random.rand(self.map_shape[0], self.map_shape[1], training_x.shape[1])
@@ -35,11 +37,16 @@ class SOMClassifier:
                     w_map[i][j] += learning_rate * h[i][j] * (xk - w_map[i][j])
             learning_rate = lr0 * (1 - epoch / epochs)
             standard_deviation = s * (1 - epoch / epochs)
-            if epoch%100 == 0: self.create_labels(training_x, training_y, w_map)
+            if epoch % 10 == 0:
+                bmu = [w_map[self.find_best_neuron(w_map, x)] for x in training_x]
+                errors = [np.linalg.norm(x - bmu_vec) for x, bmu_vec in zip(training_x, bmu)]
+                quantisation_error[int(epoch/10)] = np.mean(errors)
+            # if epoch%100 == 0:
         self.w_map = w_map
 
         # creating label matrix
         self.create_labels(training_x, training_y, w_map)
+        return quantisation_error
 
     def predict(self, samples: np.array):
         """
