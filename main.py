@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 import som
 
-EPOCHS = 2000
+EPOCHS = 1500
 
 def load_data():
     """
@@ -26,13 +26,13 @@ def load_data():
     y2 = y.iloc[n:]
 
     # splitting X and y: 80% for training and 20% for tests
-    rows_1 = int(0.8 * n)
-    rows_2 = int(0.8 * (len(X) - n))
+    rows_1 = int(0.7 * n)
+    rows_2 = int(0.7 * (len(X) - n))
 
     X_learn_data = pd.concat([X1.iloc[:rows_1], X2.iloc[:rows_2]], axis=0).to_numpy()
     X_test_data = pd.concat([X1.iloc[rows_1:], X2.iloc[rows_2:]], axis=0).to_numpy()
-    y_learn_data = pd.concat([y1.iloc[:rows_1], y2.iloc[:rows_2]], axis=0)
-    y_test_data = pd.concat([y1.iloc[rows_1:], y2.iloc[rows_2:]], axis=0)
+    y_learn_data = pd.concat([y1.iloc[:rows_1], y2.iloc[:rows_2]], axis=0).to_numpy()
+    y_test_data = pd.concat([y1.iloc[rows_1:], y2.iloc[rows_2:]], axis=0).to_numpy()
 
     # normalising data to [0,1]
     scaler = MinMaxScaler()
@@ -41,7 +41,7 @@ def load_data():
     y_test_data -=1
     y_learn_data -=1
 
-    return X_learn_data, X_test_data, y_learn_data.to_numpy(), y_test_data.to_numpy()
+    return X_learn_data, X_test_data, y_learn_data, y_test_data
 
 
 def sensitivity_specificity(test: np.array, pred: np.array):

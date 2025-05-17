@@ -1,15 +1,14 @@
 import numpy as np
-from sklearn.metrics import accuracy_score
 
 
 class SOMClassifier:
-    def __init__(self, map_shape: tuple[int, int] = (6, 6)):
+    def __init__(self, map_shape: tuple[int, int] = (7, 7)):
         self.map_shape = map_shape
         self.w_map = np.array([])
-        self.neuron_labels = np.zeros(map_shape)
+        self.neuron_labels = {}
 
     def learn(self, training_x: np.array, training_y: np.array, epochs: int,
-              learning_rate: float = 0.5, standard_deviation: float = 3):
+              learning_rate: float = 0.5, standard_deviation: float = 2):
         """
         Organises neuron map based on given data.
         :param training_x: Data for training
@@ -20,9 +19,9 @@ class SOMClassifier:
         """
         lr0 = learning_rate
         s = standard_deviation
-        quantisation_error = np.empty(int(epochs/10))
+        quantisation_error = np.empty(int(epochs / 10))
 
-        # initializing map
+        # initializing random map
         w_map = np.random.rand(self.map_shape[0], self.map_shape[1], training_x.shape[1])
 
         # training: finding best matching unit and updating surrounding neurons
@@ -30,23 +29,29 @@ class SOMClassifier:
             xk = training_x[np.random.randint(0, len(training_x))]
             best_neuron_idx = self.find_best_neuron(w_map, xk)
 
-            # updating map
-            h = SOMClassifier.h_function(self.map_shape, best_neuron_idx, standard_deviation)
-            for i in range(self.map_shape[0]):
-                for j in range(self.map_shape[1]):
-                    w_map[i][j] += learning_rate * h[i][j] * (xk - w_map[i][j])
+            # # updating map
+            w_map = self.update_map(w_map, standard_deviation, learning_rate, best_neuron_idx, xk)
             learning_rate = lr0 * (1 - epoch / epochs)
             standard_deviation = s * (1 - epoch / epochs)
+
+            # calculating error
             if epoch % 10 == 0:
                 bmu = [w_map[self.find_best_neuron(w_map, x)] for x in training_x]
                 errors = [np.linalg.norm(x - bmu_vec) for x, bmu_vec in zip(training_x, bmu)]
-                quantisation_error[int(epoch/10)] = np.mean(errors)
-            # if epoch%100 == 0:
+                quantisation_error[int(epoch / 10)] = np.mean(errors)
         self.w_map = w_map
 
         # creating label matrix
         self.create_labels(training_x, training_y, w_map)
         return quantisation_error
+
+    def update_map(self, w_map: np.array, sigma: float, lr: float, idx, x):
+        for i in range(self.map_shape[0]):
+            for j in range(self.map_shape[1]):
+                d = np.sqrt((i - idx[0]) ** 2 + (j - idx[1]) ** 2)
+                h = np.exp(-(d ** 2) / (2 * sigma ** 2))
+                w_map[i, j] += lr * h * (x - w_map[i, j])
+        return w_map
 
     def predict(self, samples: np.array):
         """
@@ -57,7 +62,16 @@ class SOMClassifier:
         y = []
         for sample in samples:
             best_neuron_idx = self.find_best_neuron(self.w_map, sample)
-            y.append(int(self.neuron_labels[best_neuron_idx]))
+            if best_neuron_idx in self.neuron_labels:
+                y.append(int(self.neuron_labels[best_neuron_idx]))
+            else:
+                min_dist = float('inf')
+                for neuron, label in self.neuron_labels.items():
+                    dist = SOMClassifier.e_distance(neuron, best_neuron_idx)
+                    if dist < min_dist:
+                        min_dist = dist
+                        best_label = label
+                y.append(best_label)
         return np.array(y)
 
     def find_best_neuron(self, w_map: np.ndarray, xk):
@@ -90,22 +104,6 @@ class SOMClassifier:
             result += np.power(w[i] - xi[i], 2)
         return np.sqrt(result)
 
-    @staticmethod
-    def h_function(grid_shape: tuple[int, int],
-                   winner_coords,
-                   stand_deviation: float) -> np.ndarray:
-        """
-        Neighborhood function. Determines how much neurons are updated
-        based on a distance from best matching unit.
-        :param grid_shape: Neuron map shape
-        :param winner_coords: (x, y) coordinates
-        :param stand_deviation: Standard deviation
-        :return:
-        """
-        h_indices = np.indices(grid_shape).transpose(1, 2, 0)
-        e_distances = np.sqrt(np.sum((h_indices - winner_coords) ** 2, axis=-1))
-        return np.exp(-e_distances / (2 * (stand_deviation ** 2)))
-
     def create_labels(self, training_x: np.array,
                       training_y: np.array, w_map: np.array):
         """
@@ -115,9 +113,15 @@ class SOMClassifier:
         :param training_y: Labels of training data
         :param w_map: Trained neuron map
         """
-        for i in range(self.map_shape[0]):
-            for j in range(self.map_shape[1]):
-                distances = [ self.e_distance(w_map[i][j], x) for x in training_x ]
-                nearest = np.argmin(distances)
-                self.neuron_labels[i, j] = training_y[nearest]
-        print("Neuron map labels:\n{}\n".format(self.neuron_labels))
+        neuron_labels = {}
+
+        for i, (x, label) in enumerate(zip(training_x, training_y)):
+            best_neuron_idx = self.find_best_neuron(w_map, x)
+            if best_neuron_idx not in neuron_labels:
+                neuron_labels[best_neuron_idx] = []
+            neuron_labels[best_neuron_idx].append(label)
+
+        for i, labels in neuron_labels.items():
+            neuron_labels[i] = max(set(labels), key=labels.count)
+
+        self.neuron_labels = neuron_labels
