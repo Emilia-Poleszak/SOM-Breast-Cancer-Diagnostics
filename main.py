@@ -6,14 +6,15 @@ from sklearn.preprocessing import MinMaxScaler
 
 import som
 
-EPOCHS = 1500
+EPOCHS = 10000
+DATABASE_FILENAME = r'Breast Cancer Coimbra_MLR\dataR2.csv'
 
 def load_data():
     """
     Loads data and splits it for X and y, by classes and for training and test.
     :return: Numpy arrays: X for training, y for training, X for tests, y for tests
     """
-    data = pd.read_csv(r'Breast Cancer Coimbra_MLR\dataR2.csv')
+    data = pd.read_csv(DATABASE_FILENAME)
 
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
@@ -38,8 +39,8 @@ def load_data():
     scaler = MinMaxScaler()
     X_learn_data = scaler.fit_transform(X_learn_data)
     X_test_data = scaler.transform(X_test_data)
-    y_test_data -=1
-    y_learn_data -=1
+    # y_test_data -=1
+    # y_learn_data -=1
 
     return X_learn_data, X_test_data, y_learn_data, y_test_data
 
