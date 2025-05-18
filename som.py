@@ -2,6 +2,10 @@ import numpy as np
 
 
 class SOMClassifier:
+    """
+    Implementation of Self-Organizing Map
+    """
+
     def __init__(self, map_shape: tuple[int, int] = (7, 7)):
         self.map_shape = map_shape
         self.w_map = np.array([])
@@ -13,12 +17,12 @@ class SOMClassifier:
         Organises neuron map based on given data.
         :param training_x: Data for training
         :param training_y: Data labels
-        :param learning_rate: Number of learning rate
-        :param standard_deviation: Standard deviation, used in h_function
+        :param learning_rate: Learning rate
+        :param standard_deviation: Standard deviation
         :param epochs: Number of epochs
         """
         lr0 = learning_rate
-        s = standard_deviation
+        s0 = standard_deviation
         quantisation_error = np.empty(int(epochs / 10))
 
         # initializing random map
@@ -32,7 +36,7 @@ class SOMClassifier:
             # # updating map
             w_map = self.update_map(w_map, standard_deviation, learning_rate, best_neuron_idx, xk)
             learning_rate = lr0 * (1 - epoch / epochs)
-            standard_deviation = s * (1 - epoch / epochs)
+            standard_deviation = s0 * (1 - epoch / epochs)
 
             # calculating error
             if epoch % 10 == 0:
@@ -45,7 +49,17 @@ class SOMClassifier:
         self.create_labels(training_x, training_y, w_map)
         return quantisation_error
 
-    def update_map(self, w_map: np.array, sigma: float, lr: float, idx, x):
+    def update_map(self, w_map: np.array, sigma: float,
+                   lr: float, idx, x) -> np.array:
+        """
+        Updates map using neighborhood function and learning rate.
+        :param w_map: Neuron map
+        :param sigma: Standard deviation
+        :param lr: Learning rate
+        :param idx: Best neuron index
+        :param x: Data sample
+        :return: Updated neuron map
+        """
         for i in range(self.map_shape[0]):
             for j in range(self.map_shape[1]):
                 d = np.sqrt((i - idx[0]) ** 2 + (j - idx[1]) ** 2)
