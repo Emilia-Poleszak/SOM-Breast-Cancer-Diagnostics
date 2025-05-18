@@ -57,7 +57,8 @@ def load_data():
 
     return X_learn_data, X_test_data, y_learn_data, y_test_data
 
-def confusion_matrix(y_true, y_pred, positive_class = 2, negative_class = 1):
+
+def confusion_matrix(y_true, y_pred, positive_class=2, negative_class=1):
     """
     Calculates confusion matrix for given true and predicted values.
     :param y_true: True class labels
@@ -81,28 +82,15 @@ def confusion_matrix(y_true, y_pred, positive_class = 2, negative_class = 1):
                 fp += 1
             if y_pred[i] == negative_class:
                 fn += 1
-    return np.array([[tp, fp], [fn, tn]])
-
-def sensitivity_specificity(test: np.array, pred: np.array) -> tuple:
-    """
-    Calculates sensitivity and specificity of given predicted labels based on true labels.
-    In true data: 1 - healthy controls (negative), 2 - patients (positive).
-    Prints results in percentage format.
-    :param test: True data labels
-    :param pred: Predicted data labels
-    :return: Percentage sensitivity and specificity
-    """
-    # test_bin = (np.array(test) == 1).astype(int)
-    # pred_bin = (np.array(pred) == 1).astype(int)
-
-    tp, fp, fn, tn = confusion_matrix(test, pred).ravel()
 
     sensitivity = tp / (tp + fn) * 100
     specificity = tn / (tn + fp) * 100
 
     print("Sensitivity: {:.2f}%".format(sensitivity))
     print("Specificity: {:.2f}%\n".format(specificity))
+
     return sensitivity, specificity
+
 
 def accuracy(pred: np.array, test: np.array) -> float:
     """
@@ -120,6 +108,7 @@ def accuracy(pred: np.array, test: np.array) -> float:
     print("Accuracy: {:.2f}%".format(a))
     return a
 
+
 def statistics(learn_x: np.array, test_x: np.array, learn_y: np.array, test_y: np.array):
     """
     Calculates and prints statistics: mean accuracy, sensitivity and specificity of SOM.
@@ -135,7 +124,7 @@ def statistics(learn_x: np.array, test_x: np.array, learn_y: np.array, test_y: n
         som_clf.train(learn_x, learn_y, test_x, test_y, epochs=EPOCHS)
         pred_y = som_clf.predict(test_x)
         acc.append(accuracy(pred_y, test_y))
-        [sens, spec] = sensitivity_specificity(test_y, pred_y)
+        [sens, spec] = confusion_matrix(test_y, pred_y)
         sensitivity.append(sens)
         specificity.append(spec)
 
@@ -169,7 +158,7 @@ def plot_qe(x_learn_data: np.array, x_test_data: np.array, y_learn_data: np.arra
     print("Predicted labels: \n{}".format(y_pred))
 
     accuracy(y_pred, y_test_data)
-    sensitivity_specificity(y_test_data, y_pred)
+    confusion_matrix(y_test_data, y_pred)
 
     fig, ax = plt.subplots()
     ax.plot([10 * i for i in range(len(errors))], errors)
