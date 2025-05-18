@@ -1,141 +1,116 @@
 import numpy as np
 
-
-class SOMClassifier:
+class SOMClassifier(object):
     """
     Implementation of Self-Organizing Map
     """
-
-    def __init__(self, map_shape: tuple[int, int] = (7, 7)):
+    def __init__(self, map_shape: (int, int) = (7,7)):
         self.map_shape = map_shape
         self.w_map = np.array([])
         self.neuron_labels = {}
 
-    def learn(self, training_x: np.array, training_y: np.array, epochs: int,
-              learning_rate: float = 0.5, standard_deviation: float = 2):
+    def train(self, x_train, y_train, x_val = None, y_val = None,
+              epochs: int = 1000,
+              learning_rate: float = 0.2,
+              std: float = 1.0):
         """
         Organises neuron map based on given data.
-        :param training_x: Data for training
-        :param training_y: Data labels
-        :param learning_rate: Learning rate
-        :param standard_deviation: Standard deviation
+        :param x_train: Input dataset for training
+        :param y_train: Output dataset for training
+        :param x_val: Input dataset for validation
+        :param y_val: Output dataset for validation
         :param epochs: Number of epochs
+        :param learning_rate: Learning rate used for updating weights
+        :param std: Standard deviation for gaussian neighborhood function
+        :return: Quantization errors evolution during training
         """
-        lr0 = learning_rate
-        s0 = standard_deviation
-        quantisation_error = np.empty(int(epochs / 10))
+        self.w_map = np.random.rand(self.map_shape[0], self.map_shape[1], x_train.shape[1])
+        lr = learning_rate
+        s = std
+        qe = []
+        if x_val is None or y_val is None:
+            x_val, y_val = x_train, y_train
 
-        # initializing random map
-        w_map = np.random.rand(self.map_shape[0], self.map_shape[1], training_x.shape[1])
-
-        # training: finding best matching unit and updating surrounding neurons
         for epoch in range(epochs):
-            xk = training_x[np.random.randint(0, len(training_x))]
-            best_neuron_idx = self.find_best_neuron(w_map, xk)
+            xk = x_train[np.random.randint(0, len(x_train))]
+            bmu_idx = self.find_bmu(xk)
+            h = self.h_func(bmu_idx, s)
 
-            # # updating map
-            w_map = self.update_map(w_map, standard_deviation, learning_rate, best_neuron_idx, xk)
-            learning_rate = lr0 * (1 - epoch / epochs)
-            standard_deviation = s0 * (1 - epoch / epochs)
+            for i in range(self.map_shape[0]):
+                for j in range(self.map_shape[1]):
+                    self.w_map[i,j] += lr * h[i,j] * (xk - self.w_map[i,j])
 
-            # calculating error
             if epoch % 10 == 0:
-                bmu = [w_map[self.find_best_neuron(w_map, x)] for x in training_x]
-                errors = [np.linalg.norm(x - bmu_vec) for x, bmu_vec in zip(training_x, bmu)]
-                quantisation_error[int(epoch / 10)] = np.mean(errors)
-        self.w_map = w_map
+                errors = [np.linalg.norm(x - self.w_map[self.find_bmu(x)]) for x in x_val]
+                qe.append(np.mean(errors))
 
-        # creating label matrix
-        self.create_labels(training_x, training_y, w_map)
-        return quantisation_error
+            lr = learning_rate * (1 - epoch/epochs)
+            s = std * (1 - epoch/epochs)
 
-    def update_map(self, w_map: np.array, sigma: float,
-                   lr: float, idx, x) -> np.array:
-        """
-        Updates map using neighborhood function and learning rate.
-        :param w_map: Neuron map
-        :param sigma: Standard deviation
-        :param lr: Learning rate
-        :param idx: Best neuron index
-        :param x: Data sample
-        :return: Updated neuron map
-        """
-        for i in range(self.map_shape[0]):
-            for j in range(self.map_shape[1]):
-                d = np.sqrt((i - idx[0]) ** 2 + (j - idx[1]) ** 2)
-                h = np.exp(-(d ** 2) / (2 * sigma ** 2))
-                w_map[i, j] += lr * h * (x - w_map[i, j])
-        return w_map
+        self.set_labels(x_train, y_train)
+        return np.array(qe)
 
-    def predict(self, samples: np.array):
+    def predict(self, samples):
         """
         Predicts a label of given data samples.
         :param samples: Data samples
         :return: Data labels
         """
-        y = []
+        results = []
         for sample in samples:
-            best_neuron_idx = self.find_best_neuron(self.w_map, sample)
-            if best_neuron_idx in self.neuron_labels:
-                y.append(int(self.neuron_labels[best_neuron_idx]))
-            else:
-                min_dist = float('inf')
-                for neuron, label in self.neuron_labels.items():
-                    dist = SOMClassifier.e_distance(neuron, best_neuron_idx)
-                    if dist < min_dist:
-                        min_dist = dist
-                        best_label = label
-                y.append(best_label)
-        return np.array(y)
+            bmu_idx = self.find_bmu(sample)
+            results.append(self.neuron_labels[bmu_idx])
+        return np.array(results)
 
-    def find_best_neuron(self, w_map: np.ndarray, xk):
+    def find_bmu(self, xk) -> tuple[int, int]:
         """
         Finds best matching unit's coordinates based on Euclidean distance
         between a neuron and a data sample.
-        :param w_map: Neuron map
         :param xk: Data sample
-        :return: (x, y) coordinates
+        :return: (x, y) coordinates of best matching unit in weights map
         """
-        e_distances = []
+        winner = (0, 0)
+        shortest_distance = np.inf
+        for row in range(self.map_shape[0]):
+            for col in range(self.map_shape[1]):
+                distance = self.e_distance(self.w_map[row][col], xk)
+                if distance < shortest_distance:
+                    shortest_distance = distance
+                    winner = (row, col)
+        return winner
+
+    def h_func(self, bmu_idx: tuple[int, int], std: float):
+        """
+        Generates gaussian neighborhood function value for each neuron in self.w_map.
+        :param bmu_idx: Best matching unit's index
+        :param std: Standard deviation for gaussian neighborhood function
+        :return: Matrix of gaussian neighborhood function values
+        """
+        h = np.empty(self.map_shape)
         for i in range(self.map_shape[0]):
-            temp = []
             for j in range(self.map_shape[1]):
-                temp.append(SOMClassifier.e_distance(w_map[i][j], xk))
-            e_distances.append(temp)
-        e_distances = np.array(e_distances)
-        return np.unravel_index(np.argmin(e_distances), e_distances.shape)
+                distance = SOMClassifier.e_distance(np.array(bmu_idx), np.array([i, j]))
+                h[i, j] = np.exp(-(distance ** 2) / (2 * (std ** 2)))
+        return h
 
-    @staticmethod
-    def e_distance(w: np.array, xi) -> float:
-        """
-        Calculates Euclidean distance between two vectors.
-        :param w: First vector
-        :param xi: Second vector
-        :return: Euclidean distance
-        """
-        result = 0
-        for i in range(len(w)):
-            result += np.power(w[i] - xi[i], 2)
-        return np.sqrt(result)
-
-    def create_labels(self, training_x: np.array,
-                      training_y: np.array, w_map: np.array):
+    def set_labels(self, x_train, y_train):
         """
         Creates labels of trained map based on training data and it's labels.
-        Params training_x and training_y must have same size for axis=1.
-        :param training_x: Normalised training data
-        :param training_y: Labels of training data
-        :param w_map: Trained neuron map
+        :param x_train:
+        :param y_train:
+        :return:
         """
-        neuron_labels = {}
+        for i in range(self.map_shape[0]):
+            for j in range(self.map_shape[1]):
+                distances = [SOMClassifier.e_distance(self.w_map[i, j], x) for x in x_train]
+                self.neuron_labels[(i, j)] = y_train[np.argmin(distances)]
 
-        for i, (x, label) in enumerate(zip(training_x, training_y)):
-            best_neuron_idx = self.find_best_neuron(w_map, x)
-            if best_neuron_idx not in neuron_labels:
-                neuron_labels[best_neuron_idx] = []
-            neuron_labels[best_neuron_idx].append(label)
-
-        for i, labels in neuron_labels.items():
-            neuron_labels[i] = max(set(labels), key=labels.count)
-
-        self.neuron_labels = neuron_labels
+    @staticmethod
+    def e_distance(a: np.ndarray, b: np.ndarray) -> float:
+        """
+        Calculates Euclidean distance between two vectors.
+        :param a: First vector
+        :param b: Second vector
+        :return: Euclidean distance
+        """
+        return np.sqrt(np.sum((a - b) ** 2))
