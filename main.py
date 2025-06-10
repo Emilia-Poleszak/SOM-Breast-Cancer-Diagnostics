@@ -119,7 +119,7 @@ def single_training(x_learn_data: np.ndarray, x_test_data: np.ndarray,
     metrics.show_conf_matrix(conf_mat, learning_rate, map_shape)
 
     acc = metrics.accuracy(y_pred, y_test_data)
-    print("Accuracy: {}".format(acc))
+    print("Accuracy: {:.2f}%".format(acc))
     metrics.sensitivity_specificity(y_test_data, y_pred)
 
     fig, ax = plt.subplots()
@@ -144,6 +144,6 @@ if __name__ == '__main__':
     # statistics(X_learn, X_test, y_learn, y_test)
     single_training(X_learn, X_test, y_learn, y_test)
 
-    # test_parameters(X_learn, X_test, y_learn, y_test)
+    #test_parameters(X_learn, X_test, y_learn, y_test)
 
     plt.show()
