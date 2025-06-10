@@ -66,7 +66,7 @@ def sensitivity_specificity(test: np.array, pred: np.array) -> tuple:
     :return: Percentage sensitivity and specificity
     """
 
-    tp, fp, fn, tn = confusion_matrix(test, pred).ravel()
+    tn, fp, fn, tp = confusion_matrix(test, pred).ravel()
 
     sensitivity = tp / (tp + fn) * 100
     specificity = tn / (tn + fp) * 100

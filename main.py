@@ -60,21 +60,26 @@ def load_data():
     return X_learn_data, X_test_data, y_learn_data, y_test_data
 
 def statistics(learn_x: np.ndarray, test_x: np.ndarray,
-               learn_y: np.ndarray, test_y: np.ndarray):
+               learn_y: np.ndarray, test_y: np.ndarray,
+               lr: float = 0.1, std: float = 1, map_shape: tuple = (7,7)):
     """
     Calculates and prints statistics: mean accuracy, sensitivity and specificity of SOM.
     :param learn_x: Learning data X
     :param test_x: Testing data X
     :param learn_y: Learning data y
     :param test_y: Testing data y
+    :param lr: Learning rate
+    :param std: Standard deviation
+    :param map_shape: Shape of map
     """
     acc, sensitivity, specificity = [], [], []
-    som_clf = som.SOMClassifier()
+    som_clf = som.SOMClassifier(map_shape=map_shape)
 
     for i in range(NO_TRAINING_CALLS):
-        som_clf.train(learn_x, learn_y, test_x, test_y, epochs=EPOCHS)
+        som_clf.train(learn_x, learn_y, test_x, test_y, epochs=EPOCHS, learning_rate=lr, std=std)
         pred_y = som_clf.predict(test_x)
         acc.append(metrics.accuracy(pred_y, test_y))
+        print(f'Accuracy: {acc[-1]}')
         [sens, spec] = metrics.sensitivity_specificity(test_y, pred_y)
         sensitivity.append(sens)
         specificity.append(spec)
@@ -141,9 +146,9 @@ if __name__ == '__main__':
     X_learn, X_test, y_learn, y_test = load_data()
 
     ## choose one of the functions below
-    # statistics(X_learn, X_test, y_learn, y_test)
-    single_training(X_learn, X_test, y_learn, y_test)
+    statistics(X_learn, X_test, y_learn, y_test)
+    # single_training(X_learn, X_test, y_learn, y_test)
 
-    #test_parameters(X_learn, X_test, y_learn, y_test)
+    # test_parameters(X_learn, X_test, y_learn, y_test)
 
     plt.show()
