@@ -1,15 +1,17 @@
 import numpy as np
 
+
 class SOMClassifier(object):
     """
     Implementation of Self-Organizing Map
     """
-    def __init__(self, map_shape: (int, int) = (7,7)):
+
+    def __init__(self, map_shape: (int, int) = (7, 7)):
         self.map_shape = map_shape
         self.w_map = np.array([])
         self.neuron_labels = {}
 
-    def train(self, x_train, y_train, x_val = None, y_val = None,
+    def train(self, x_train, y_train, x_val=None, y_val=None,
               epochs: int = 1000,
               learning_rate: float = 0.2,
               std: float = 1.0):
@@ -38,14 +40,14 @@ class SOMClassifier(object):
 
             for i in range(self.map_shape[0]):
                 for j in range(self.map_shape[1]):
-                    self.w_map[i,j] += lr * h[i,j] * (xk - self.w_map[i,j])
+                    self.w_map[i, j] += lr * h[i, j] * (xk - self.w_map[i, j])
 
             if epoch % 10 == 0:
                 errors = [np.linalg.norm(x - self.w_map[self.find_bmu(x)]) for x in x_val]
                 qe.append(np.mean(errors))
 
-            lr = learning_rate * (1 - epoch/epochs)
-            s = std * (1 - epoch/epochs)
+            lr = learning_rate * (1 - epoch / epochs)
+            s = std * (1 - epoch / epochs)
 
         self.set_labels(x_train, y_train)
         return np.array(qe)
